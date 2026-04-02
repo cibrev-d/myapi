@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Survey Data</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #4CAF50; color: white; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        form { background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        input, select { width: 100%; padding: 8px; margin: 5px 0 10px 0; border: 1px solid #ddd; border-radius: 4px; }
+        button { background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #45a049; }
+    </style>
+</head>
+<body>
+    <h1>Survey Data</h1>
+    <form id="form">
+        <h2>Add New Row</h2>
+        <label>Column01 (integer):</label>
+        <input type="number" id="column01" step="1">
+        <label>Column02 (text):</label>
+        <input type="text" id="column02">
+        <label>Column03 (continuous):</label>
+        <input type="number" id="column03" step="any">
+        <label>Column04 (Coffee/Tea):</label>
+        <select id="column04">
+            <option value="">-- Select --</option>
+            <option value="Coffee">Coffee</option>
+            <option value="Tea">Tea</option>
+        </select>
+        <label>Column05 (Juventus/Inter):</label>
+        <select id="column05">
+            <option value="">-- Select --</option>
+            <option value="Juventus">Juventus</option>
+            <option value="Inter">Inter</option>
+        </select>
+        <label>Column06 (Alcohol):</label>
+        <select id="column06">
+            <option value="">-- Select --</option>
+            <option value="No alcohol">No alcohol</option>
+            <option value="Up to 1 beverage per week">Up to 1 beverage per week</option>
+            <option value="Up to 5 beverages per week">Up to 5 beverages per week</option>
+            <option value="More than 5 beverages per week">More than 5 beverages per week</option>
+        </select>
+        <label>Column07 (continuous):</label>
+        <input type="number" id="column07" step="any">
+        <button type="button" onclick="addRow()">Add Row</button>
+    </form>
+    <h2>All Rows</h2>
+    <table id="table">
+        <thead>
+            <tr>
+                <th>ID</th><th>Column01</th><th>Column02</th><th>Column03</th>
+                <th>Column04</th><th>Column05</th><th>Column06</th><th>Column07</th>
+            </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+    </table>
+    <script>
+        async function loadData() {
+            const res = await fetch('/data');
+            const data = await res.json();
+            const tbody = document.getElementById('tbody');
+            tbody.innerHTML = '';
+            data.forEach(row => {
+                tbody.innerHTML += `<tr>
+                    <td>${row.id}</td><td>${row.column01 ?? ''}</td><td>${row.column02 ?? ''}</td>
+                    <td>${row.column03 ?? ''}</td><td>${row.column04 ?? ''}</td>
+                    <td>${row.column05 ?? ''}</td><td>${row.column06 ?? ''}</td><td>${row.column07 ?? ''}</td>
+                </tr>`;
+            });
+        }
+
+        async function addRow() {
+            const row = {
+                column01: parseInt(document.getElementById('column01').value) || null,
+                column02: document.getElementById('column02').value || null,
+                column03: parseFloat(document.getElementById('column03').value) || null,
+                column04: document.getElementById('column04').value || null,
+                column05: document.getElementById('column05').value || null,
+                column06: document.getElementById('column06').value || null,
+                column07: parseFloat(document.getElementById('column07').value) || null,
+            };
+            await fetch('/data', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(row)
+            });
+            loadData();
+        }
+
+        loadData();
+    </script>
+</body>
+</html>
+```
+
+Save both files, then push to GitHub:
+```
+git add .
+git commit -m "add survey table and web interface"
+git push
