@@ -46,10 +46,3 @@ def add_row(row: Row):
     cursor.close()
     conn.close()
     return {"message": "Row added successfully!"}
-```
-
-Replace `YOUR_PASSWORD` with your actual password. Save the file.
-
-Then create a new file called `index.html` in the same folder:
-```
-notepad C:\Users\dc_lv\myapi\index.html
