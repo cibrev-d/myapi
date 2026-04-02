@@ -10,33 +10,47 @@
         th { background-color: #4CAF50; color: white; }
         tr:nth-child(even) { background-color: #f2f2f2; }
         form { background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-        input, select { width: 100%; padding: 8px; margin: 5px 0 10px 0; border: 1px solid #ddd; border-radius: 4px; }
-        button { background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        input, select { width: 100%; padding: 8px; margin: 5px 0 2px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        input.error { border-color: red; }
+        .error-msg { color: red; font-size: 12px; margin-bottom: 8px; display: none; }
+        button { background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px; }
         button:hover { background-color: #45a049; }
+        .success-msg { color: green; font-weight: bold; margin-top: 10px; display: none; }
     </style>
 </head>
 <body>
     <h1>Survey Data</h1>
-    <form id="form">
+    <form id="form" onsubmit="return false;">
         <h2>Add New Row</h2>
+
         <label>Column01 (integer):</label>
-        <input type="number" id="column01" step="1">
+        <input type="text" id="column01">
+        <div class="error-msg" id="err_column01">Please enter a whole number (e.g. 42)</div>
+
         <label>Column02 (text):</label>
         <input type="text" id="column02">
-        <label>Column03 (continuous):</label>
-        <input type="number" id="column03" step="any">
+        <div class="error-msg" id="err_column02">This field cannot be empty</div>
+
+        <label>Column03 (continuous number):</label>
+        <input type="text" id="column03">
+        <div class="error-msg" id="err_column03">Please enter a valid number (e.g. 3.14)</div>
+
         <label>Column04 (Coffee/Tea):</label>
         <select id="column04">
             <option value="">-- Select --</option>
             <option value="Coffee">Coffee</option>
             <option value="Tea">Tea</option>
         </select>
+        <div class="error-msg" id="err_column04">Please select an option</div>
+
         <label>Column05 (Juventus/Inter):</label>
         <select id="column05">
             <option value="">-- Select --</option>
             <option value="Juventus">Juventus</option>
             <option value="Inter">Inter</option>
         </select>
+        <div class="error-msg" id="err_column05">Please select an option</div>
+
         <label>Column06 (Alcohol):</label>
         <select id="column06">
             <option value="">-- Select --</option>
@@ -45,10 +59,16 @@
             <option value="Up to 5 beverages per week">Up to 5 beverages per week</option>
             <option value="More than 5 beverages per week">More than 5 beverages per week</option>
         </select>
-        <label>Column07 (continuous):</label>
-        <input type="number" id="column07" step="any">
+        <div class="error-msg" id="err_column06">Please select an option</div>
+
+        <label>Column07 (continuous number):</label>
+        <input type="text" id="column07">
+        <div class="error-msg" id="err_column07">Please enter a valid number (e.g. 1.5)</div>
+
         <button type="button" onclick="addRow()">Add Row</button>
+        <div class="success-msg" id="success">Row added successfully! ✅</div>
     </form>
+
     <h2>All Rows</h2>
     <table id="table">
         <thead>
@@ -59,7 +79,63 @@
         </thead>
         <tbody id="tbody"></tbody>
     </table>
+
     <script>
+        function showError(id, show) {
+            const el = document.getElementById('err_' + id);
+            const input = document.getElementById(id);
+            el.style.display = show ? 'block' : 'none';
+            if (input) input.classList.toggle('error', show);
+        }
+
+        function validate() {
+            let valid = true;
+
+            const col01 = document.getElementById('column01').value.trim();
+            if (col01 !== '' && !Number.isInteger(Number(col01))) {
+                showError('column01', true); valid = false;
+            } else { showError('column01', false); }
+
+            const col03 = document.getElementById('column03').value.trim();
+            if (col03 !== '' && isNaN(Number(col03))) {
+                showError('column03', true); valid = false;
+            } else { showError('column03', false); }
+
+            const col07 = document.getElementById('column07').value.trim();
+            if (col07 !== '' && isNaN(Number(col07))) {
+                showError('column07', true); valid = false;
+            } else { showError('column07', false); }
+
+            return valid;
+        }
+
+        async function addRow() {
+            if (!validate()) return;
+
+            const row = {
+                column01: document.getElementById('column01').value.trim() !== '' ? parseInt(document.getElementById('column01').value) : null,
+                column02: document.getElementById('column02').value.trim() || null,
+                column03: document.getElementById('column03').value.trim() !== '' ? parseFloat(document.getElementById('column03').value) : null,
+                column04: document.getElementById('column04').value || null,
+                column05: document.getElementById('column05').value || null,
+                column06: document.getElementById('column06').value || null,
+                column07: document.getElementById('column07').value.trim() !== '' ? parseFloat(document.getElementById('column07').value) : null,
+            };
+
+            const res = await fetch('/data', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(row)
+            });
+
+            if (res.ok) {
+                document.getElementById('success').style.display = 'block';
+                setTimeout(() => document.getElementById('success').style.display = 'none', 3000);
+                document.getElementById('form').reset();
+                loadData();
+            }
+        }
+
         async function loadData() {
             const res = await fetch('/data');
             const data = await res.json();
@@ -74,32 +150,7 @@
             });
         }
 
-        async function addRow() {
-            const row = {
-                column01: parseInt(document.getElementById('column01').value) || null,
-                column02: document.getElementById('column02').value || null,
-                column03: parseFloat(document.getElementById('column03').value) || null,
-                column04: document.getElementById('column04').value || null,
-                column05: document.getElementById('column05').value || null,
-                column06: document.getElementById('column06').value || null,
-                column07: parseFloat(document.getElementById('column07').value) || null,
-            };
-            await fetch('/data', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(row)
-            });
-            loadData();
-        }
-
         loadData();
     </script>
 </body>
 </html>
-```
-
-Save both files, then push to GitHub:
-```
-git add .
-git commit -m "add survey table and web interface"
-git push
