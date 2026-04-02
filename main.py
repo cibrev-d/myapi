@@ -3,7 +3,7 @@ import psycopg2
 
 app = FastAPI()
 
-DB_URI = "postgresql://postgres:p4ssw0rd@db.qxpkcayggyiihhwcnhbn.supabase.co:5432/postgres"
+DB_URI = "postgresql://postgres.qxpkcayggyiihhwcnhbn:p4ssw0rd@aws-1-eu-west-1.pooler.supabase.com:6543/postgres"
 
 def get_connection():
     return psycopg2.connect(DB_URI)
