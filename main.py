@@ -46,3 +46,21 @@ def add_row(row: Row):
     cursor.close()
     conn.close()
     return {"message": "Row added successfully!"}
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return {"message": "Row added successfully!"}
+
+@app.get("/dashboard")
+def dashboard():
+    return HTMLResponse(open("dashboard.html").read())
+
+@app.get("/stats")
+def get_stats():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT 
+            COUNT(*) as total_rows,
+            AVG(column01) as avg_column01,
+            ...
